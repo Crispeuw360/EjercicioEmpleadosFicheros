@@ -6,10 +6,10 @@ public class Empleado extends Persona implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private static String codEmpleado ="100";
-	private String dep;
+	private Departamentos dep;
 	private int codCat;
 	
-	public Empleado(String nom,String ape,String dni,String dep, int codCat) 
+	public Empleado(String nom,String ape,String dni,Departamentos dep, int codCat) 
 	{
 		super(nom,ape,dni);
 		this.dep = dep;
@@ -20,11 +20,11 @@ public class Empleado extends Persona implements Serializable {
 		return codEmpleado;
 	}
 
-	public String getDep() {
+	public Departamentos getDep() {
 		return dep;
 	}
 
-	public void setDep(String dep) {
+	public void setDep(Departamentos dep) {
 		this.dep = dep;
 	}
 

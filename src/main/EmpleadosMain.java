@@ -30,11 +30,11 @@ public class EmpleadosMain {
 		
 		
 		
-		Empleado empleado1 = new Empleado("Juan", "Pérez", "12345678A", "IT", 1);
-		Empleado empleado2 = new Empleado("Ana", "López", "23456789B", "HR", 2);
-		Empleado empleado3 = new Empleado("Luis", "Gómez", "34567890C", "Finance", 3);
-		Empleado empleado4 = new Empleado("Marta", "Ruiz", "45678901D", "Marketing", 4);
-		Empleado empleado5 = new Empleado("Carlos", "Fernández", "56789012E", "Sales", 5);
+		Empleado empleado1 = new Empleado("Juan", "Pérez", "12345678A", Departamentos.INFORMATICA, 1);
+		Empleado empleado2 = new Empleado("Ana", "López", "23456789B", Departamentos.OFICINA, 2);
+		Empleado empleado3 = new Empleado("Luis", "Gómez", "34567890C", Departamentos.OFICINA, 3);
+		Empleado empleado4 = new Empleado("Marta", "Ruiz", "45678901D", Departamentos.MARKETING, 4);
+		Empleado empleado5 = new Empleado("Carlos", "Fernández", "56789012E", Departamentos.PRODUCCION, 5);
 		
 		ObjectOutputStream oos = null;
 
@@ -85,8 +85,11 @@ public class EmpleadosMain {
 	
 	public static void altaEmpleado(File fich)
 	{
-		String dep,nombre,apellido,dni,opcion;
+		String deepIntro,nombre,apellido,dni,opcion;
 		int codCat;
+		Departamentos dep =null;
+		
+	
 
 		if (fich.exists()) 
 		{
@@ -100,8 +103,16 @@ public class EmpleadosMain {
 				apellido = Utilidades.introducirCadena();
 				System.out.println("Introduce el dni: ");
 				dni = Utilidades.introducirCadena();
-				System.out.println("Introduce el dep: ");
-				dep = Utilidades.introducirCadena();
+				do {
+					System.out.println("Introduce el dep: ");
+					deepIntro = Utilidades.introducirCadena().toUpperCase();
+					try {
+						dep = Departamentos.valueOf(deepIntro);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} while (deepIntro==null);
 				System.out.println("Introduce el codigo Categoria: ");
 				codCat = Utilidades.leerInt();
 				Empleado aux = new Empleado( nombre,apellido,dni,dep,codCat);
@@ -168,6 +179,104 @@ public class EmpleadosMain {
 			}
 		}
 	}
+	public static void modificarDepEmpleadoPorId(File fich)
+	{
+		boolean modificado = false;
+		boolean finArchivo = false;
+		
+		String deepIntro,opcion;
+		Departamentos dep;
+		
+		
+		File fichAux = new File("fichAux.dat");
+		
+		String id;
+		System.out.println("Introduce el codigo de empelado");
+		id = Utilidades.introducirCadena();
+		
+		if (fich.exists()) {
+			try {
+				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fich));
+				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fichAux));
+
+				// Leer mientras no se alcance el fin del archivo
+				while (!finArchivo) {
+					try {
+						Empleado aux = (Empleado) ois.readObject();
+						if (aux.getCodEmpleado().equalsIgnoreCase(id)) {
+							System.out.println(aux.toString());
+							System.out.println("Quieres cambiar el departamento");
+							opcion = Utilidades.introducirCadena("Si", "No");
+							if (opcion.equalsIgnoreCase("si")) 
+							{
+								do {
+									System.out.println("Introduce el dep: ");
+									deepIntro = Utilidades.introducirCadena().toUpperCase();
+									try {
+										dep = Departamentos.valueOf(deepIntro);
+									} catch (Exception e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								} while (deepIntro==null);
+								System.out.println("departamento modificado");
+								modificado = true;
+							}else
+							{
+								System.out.println("no se ha modificado el empleado");
+								modificado = false;
+							}
+						} else {
+							System.out.println("No hay un animal con ese id");
+						}
+						oos.writeObject(aux);
+					} catch (EOFException e) {
+						// Fin del archivo alcanzado
+						finArchivo = true;
+					}
+				}
+				oos.close();
+				ois.close();
+				if (modificado) 
+				{
+					System.out.println("ArrayList modificado");
+					if (fich.delete()) {
+						fichAux.renameTo(fich);
+					}
+				}
+
+			} catch (Exception e) {
+				System.out.println("Fatal error");
+			}
+		} else {
+			System.out.println("Fichero nuevo");
+		}
+	
+	}
+	
+	public static void listarDepartamentos(File fich) throws EOFException
+	{
+		int depInf=0,depMark=0,depOfi=0,depProd=0;
+		
+		Departamentos dep;
+		
+		boolean finArchivo = false;
+		if (fich.exists()) {
+			try {
+				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fich));
+
+				// Leer mientras no se alcance el fin del archivo
+				while (!finArchivo) {
+				}
+				ois.close();
+
+			} catch (Exception e) {
+				System.out.println("Fatal error");
+			}
+		} else {
+			System.out.println("Fichero nuevo");
+		}
+	}
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -189,7 +298,7 @@ public class EmpleadosMain {
 				altaCategorias(fichCategorias);
 				break;
 			case 3:
-			// modificarEdad(fichEmpleados,animales);
+				modificarDepEmpleadoPorId(fichEmpleados);
 				break;
 			case 4:
 			//	eliminar(fichEmpleados,animales);
