@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import clases.*;
 
@@ -190,9 +192,9 @@ public class EmpleadosMain {
 		
 		File fichAux = new File("fichAux.dat");
 		
-		String id;
-		System.out.println("Introduce el codigo de empelado");
-		id = Utilidades.introducirCadena();
+		String codEmpleado;
+		System.out.println("Introduce el codigo de empleado");
+		codEmpleado = Utilidades.introducirCadena();
 		
 		if (fich.exists()) {
 			try {
@@ -203,7 +205,7 @@ public class EmpleadosMain {
 				while (!finArchivo) {
 					try {
 						Empleado aux = (Empleado) ois.readObject();
-						if (aux.getCodEmpleado().equalsIgnoreCase(id)) {
+						if (aux.getCodEmpleado().equalsIgnoreCase(codEmpleado)) {
 							System.out.println(aux.toString());
 							System.out.println("Quieres cambiar el departamento");
 							opcion = Utilidades.introducirCadena("Si", "No");
@@ -254,29 +256,127 @@ public class EmpleadosMain {
 	
 	}
 	
-	public static void listarDepartamentos(File fich) throws EOFException
+	public static void listarDepartamentos(File fich) 
 	{
-		int depInf=0,depMark=0,depOfi=0,depProd=0;
-		
-		Departamentos dep;
-		
-		boolean finArchivo = false;
-		if (fich.exists()) {
-			try {
-				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fich));
+		int contOfic = 0, contMark = 0, contInfor = 0, contProduc = 0;
+		boolean endFile = false;
+		Departamentos depLeido;
+		try {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fich));
+			do {
+				try {
+					Object object = ois.readObject();
+					if (object instanceof Empleado) {
+						depLeido = ((Empleado) object).getDep();
+						switch (depLeido) 
+						{
+						
+						case OFICINA:
+							contOfic++;
+							break;
+						case MARKETING:
+							contMark++;
+							break;
+						case INFORMATICA:
+							contInfor++;
+							break;
+						case PRODUCCION:
+							contProduc++;
+							break;
+						}
+					}
 
-				// Leer mientras no se alcance el fin del archivo
-				while (!finArchivo) {
+				} catch (EOFException e) {
+					endFile = true;
 				}
-				ois.close();
+			} while (!endFile);
+			ois.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("*****ESTADISTICAS FINALES*****");
+		System.out.println("Oficina:" + contOfic);
+		System.out.println("Marketing:" + contMark);
+		System.out.println("Informatica:" + contInfor);
+		System.out.println("Produccion:" + contProduc);
+	}
+	
+	public static void listarPorCategorias(File fich,File fich2)
+	{
+		ObjectInputStream ois = null;
+		ArrayList <EmpleadoOrdenar> categoriaConteo = new ArrayList <EmpleadoOrdenar>();
+		Categoria categoria;
+		Empleado empleado;
+		boolean continuar = true;
 
-			} catch (Exception e) {
-				System.out.println("Fatal error");
+		try {
+			ois = new ObjectInputStream(new FileInputStream(fich2));
+			while (continuar) {
+				try {
+					categoria = (Categoria) ois.readObject();
+					categoriaConteo.add(new EmpleadoOrdenar (categoria));
+				} catch (EOFException eof) {
+					continuar = false;
+				} catch (ClassNotFoundException cnf) {
+					cnf.printStackTrace();
+				}
 			}
-		} else {
-			System.out.println("Fichero nuevo");
+
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		} finally {
+			try {
+				if (ois != null) {
+					ois.close();
+				}
+
+		} catch (IOException e) {
+				e.printStackTrace();
+
+			}
+		}
+
+		continuar = true;
+
+		try {
+			ois = new ObjectInputStream(new FileInputStream(fich));
+			while (continuar) {
+				try {
+					empleado = (Empleado) ois.readObject();
+					categoriaConteo.get(empleado.getCodCat() - 1).sumarEmpleado();
+				} catch (EOFException eof) {
+					continuar = false;
+				} catch (ClassNotFoundException cnf) {
+					cnf.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+
+			e.printStackTrace();
+
+		} finally {
+
+			try {
+				if (ois != null) {
+					ois.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		if (categoriaConteo.isEmpty()) {
+			System.out.println("No hay categorias");
+		}	else {
+			Collections.sort(categoriaConteo);
+			for (EmpleadoOrdenar aux : categoriaConteo) {
+				System.out.println(aux);
+			}
 		}
 	}
+	
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -301,10 +401,10 @@ public class EmpleadosMain {
 				modificarDepEmpleadoPorId(fichEmpleados);
 				break;
 			case 4:
-			//	eliminar(fichEmpleados,animales);
+				listarDepartamentos(fichEmpleados);
 				break;
 			case 5:
-				
+				listarPorCategorias(fichEmpleados,fichCategorias);
 				break;
 			}
 		} while (opcion != 6);

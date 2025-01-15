@@ -1,8 +1,7 @@
 package clases;
 
-import java.io.Serializable;
 
-public class Empleado extends Persona implements Serializable {
+public class Empleado extends Persona {
 
 	private static final long serialVersionUID = 1L;
 	private static String codEmpleado ="100";
